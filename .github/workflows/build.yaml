@@ -1,4 +1,4 @@
-name: Build
+name: Build and Test
 permissions:
   contents: read
 on:
@@ -8,9 +8,25 @@ on:
   pull_request:
 
 jobs:
-  build-orders:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Setup Java
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: java --version
+      - name: Test Orders App
+        run: mvn test
+        working-directory: orders
+  build:
     name: Build Orders Service
     runs-on: ubuntu-24.04
+    needs: test
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -18,24 +34,13 @@ jobs:
         uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
         with:
           distribution: temurin
-          java-version: '25'
+          java-version: '21'
       - run: java --version
-      - name: Build App
+      - name: Build Orders App
         run: mvn clean package -DskipTests
         working-directory: orders
-
-  build-notifications:
-    name: Build Notifications Service
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: Setup Java
-        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
-        with:
-          distribution: temurin
-          java-version: '25'
-      - run: java --version
-      - name: Build App
+      - name: Build Notifications App
         run: mvn clean package -DskipTests
         working-directory: notifications
+  
+      
